@@ -38,3 +38,18 @@ data_avg <- data_avg %>%
   group_by(city) %>%
   mutate(n_stations = n_distinct(address)) %>%
   ungroup()
+
+
+# second database, rename etc
+data_rest <- read_excel("data2.xlsx")
+
+new_names2 <- c("city", "hcso", "legal_stat", "county", "dist_code", "dist_name",
+                "dist_seat", "office_code", "council_seat", "area", "pop", "dwellings", 
+                "area_size", "bulgarian", "greek", "croatian", "polish", "german", 
+                "armenian", "roma", "romanian", "ruthenian", "serbian", "slovakian", 
+                "slovenian", "ukrainian")
+
+data_rest <- data_rest %>% rename_with(~ new_names2)
+
+# merge the two datasets
+merged_data <- inner_join(data_avg, data_rest, by = "city")
