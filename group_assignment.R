@@ -53,3 +53,20 @@ data_rest <- data_rest %>% rename_with(~ new_names2)
 
 # merge the two datasets
 merged_data <- inner_join(data_avg, data_rest, by = "city")
+
+# new variable, area/gas station
+
+merged_data$areapstatiom <- merged_data$area/merged_data$n_stations
+
+model1 <- lm(avg_gasoline ~ avg_diesel  + dwellings + pop + areapstatiom, data = merged_data)
+summary(model1)
+
+# gdp data
+county_data <- read_excel("data3.xlsx")
+new_names3 <- c("kod", "county", "region", "gdp")
+county_data <- county_data %>% rename_with(~ new_names3)
+
+merged_data <- inner_join(merged_data, county_data, by = "county")
+
+model2 <- lm(avg_gasoline ~ avg_diesel  + dwellings + pop + areapstatiom + gdp, data = merged_data)
+summary(model2)
