@@ -61,12 +61,28 @@ merged_data$areapstatiom <- merged_data$area/merged_data$n_stations
 model1 <- lm(avg_gasoline ~ avg_diesel  + dwellings + pop + areapstatiom, data = merged_data)
 summary(model1)
 
-# gdp data
+# income data
 county_data <- read_excel("data3.xlsx")
-new_names3 <- c("kod", "county", "region", "gdp")
+new_names3 <- c("kod", "county", "region", "inc")
 county_data <- county_data %>% rename_with(~ new_names3)
 
 merged_data <- inner_join(merged_data, county_data, by = "county")
 
-model2 <- lm(avg_gasoline ~ avg_diesel  + dwellings + pop + areapstatiom + gdp, data = merged_data)
+model2 <- lm(avg_gasoline ~ avg_diesel  + dwellings + pop + areapstatiom + inc, data = merged_data)
 summary(model2)
+
+# cars data
+
+cars_data <- read_excel("cars_data.xlsx")
+new_names4 <- c("kod", "county", "region", "cars")
+cars_data <- cars_data %>% rename_with(~ new_names4)
+
+merged_data <- inner_join(merged_data, cars_data, by = "county")
+
+is.numeric(merged_data$cars)
+
+merged_data$cars <- as.numeric(merged_data$cars)
+
+model3 <- lm(avg_gasoline ~ avg_diesel  + dwellings + pop + areapstatiom + inc + cars, data = merged_data)
+summary(model3)
+
