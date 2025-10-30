@@ -3,11 +3,12 @@ rm(list = ls())
 library(readxl)
 library(tidyverse)
 library(dplyr)
-setwd("D://Egyetem//Econometrics//Group_assignment")
+library(tidyr)
+setwd("C:/Bator/1felev/Econometrics/empirical assignment")
 data <- read_excel("data.xlsx")
 
 
-new_names <- c("date", "city", "comp", "address", "diesel", "gasoline")
+new_names <- c("date", "city", "comp", "address", "diesel", "gasoline", "main/highway")
 
 data <- data %>% rename_with(~ new_names)
 
@@ -51,45 +52,73 @@ new_names2 <- c("city", "hcso", "legal_stat", "county", "dist_code", "dist_name"
 
 data_rest <- data_rest %>% rename_with(~ new_names2)
 
+#mutate Budapest in the same form
+data_avg$city <- gsub("kerület", "ker.", data_avg$city, perl = TRUE)
+
 # merge the two datasets
 merged_data <- inner_join(data_avg, data_rest, by = "city")
 
+#check for the missing rows
+library(tibble)
+missing_from_rest <- anti_join(data_avg, data_rest, by = "city")
+head(missing_from_rest$city, 30)
+
+
 # new variable, area/gas station
 
-merged_data$areapstatiom <- merged_data$area/merged_data$n_stations
+merged_data$areapstation <- merged_data$area/merged_data$n_stations
 
-model1 <- lm(avg_gasoline ~ avg_diesel  + dwellings + pop + areapstatiom, data = merged_data)
-summary(model1)
+#cleaning
+merged_data <- merged_data[, -c(7,10,11,13,14,18)]
 
 # income data
-county_data <- read_excel("data3.xlsx")
-new_names3 <- c("kod", "county", "region", "inc")
-county_data <- county_data %>% rename_with(~ new_names3)
+income_data <- read_excel("data3.xlsx")
+new_names3 <- c("code", "county", "region", "inc")
+income_data <- income_data %>% rename_with(~ new_names3)
+income_data <- income_data[, -1]
 
-merged_data <- inner_join(merged_data, county_data, by = "county")
+#merge them with special care of Budapest 
+merged_data <- left_join(merged_data, income_data, by = "county")
+merged_data$region <- replace_na(merged_data$region, "Budapest")
+merged_data$inc <- replace_na(merged_data$inc, 450.097)
 
-model2 <- lm(avg_gasoline ~ avg_diesel  + dwellings + pop + areapstatiom + inc, data = merged_data)
-summary(model2)
-
-# cars data
-
+# add cars data
 cars_data <- read_excel("cars_data.xlsx")
-new_names4 <- c("kod", "county", "region", "cars")
+new_names4 <- c("code", "county", "region", "cars")
 cars_data <- cars_data %>% rename_with(~ new_names4)
+cars_data <- cars_data[,-c(1,3)]
 
 merged_data <- inner_join(merged_data, cars_data, by = "county")
 
+#do it numeric
 is.numeric(merged_data$cars)
-
 merged_data$cars <- as.numeric(merged_data$cars)
 
-model3 <- lm(avg_gasoline ~ avg_diesel  + dwellings + pop + areapstatiom + inc + cars, data = merged_data)
-summary(model3)
-
-# creating the highway dummy
-
+# creating highway dummy
 merged_data <- merged_data %>%
   mutate(highway = stringr::str_extract(address, "M\\d+"))
-
 merged_data <- merged_data %>%
   mutate(highway_dummy = ifelse(str_detect(address, "M\\d+"), 1, 0))
+
+#some statistics
+summary(merged_data)
+
+#change type of parameters
+merged_data$comp <- as.factor(merged_data$comp)
+merged_data$city <- as.factor(merged_data$city)
+merged_data$county <- as.factor(merged_data$county)
+merged_data$dist_seat <- as.factor(merged_data$dist_seat)
+merged_data$legal_stat <- as.factor(merged_data$legal_stat)
+#merged_data[,13-25] <- replace_na(merged_data[,13-25], 0)
+
+#regressions for gasoline
+gas1 <- lm(avg_gasoline ~ avg_diesel, data = merged_data)
+summary(gas1)
+
+gas2<- lm(avg_gasoline ~ avg_diesel  + dwellings + pop + areapstation + inc + cars,
+             data = merged_data)
+summary(gas2)
+
+gas3<- lm(avg_gasoline ~ avg_diesel  + dwellings + pop + areapstation + inc + cars +
+            region + highway_dummy,  data = merged_data)
+summary(gas3)
