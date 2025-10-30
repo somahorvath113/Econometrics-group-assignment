@@ -86,3 +86,10 @@ merged_data$cars <- as.numeric(merged_data$cars)
 model3 <- lm(avg_gasoline ~ avg_diesel  + dwellings + pop + areapstatiom + inc + cars, data = merged_data)
 summary(model3)
 
+# creating the highway dummy
+
+merged_data <- merged_data %>%
+  mutate(highway = stringr::str_extract(address, "M\\d+"))
+
+merged_data <- merged_data %>%
+  mutate(highway_dummy = ifelse(str_detect(address, "M\\d+"), 1, 0))
