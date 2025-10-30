@@ -119,6 +119,21 @@ gas2<- lm(avg_gasoline ~ avg_diesel  + dwellings + pop + areapstation + inc + ca
              data = merged_data)
 summary(gas2)
 
-gas3<- lm(avg_gasoline ~ avg_diesel  + dwellings + pop + areapstation + inc + cars +
+gas3<- lm(avg_gasoline ~ dwellings + pop + areapstation + inc + cars +
             region + highway_dummy,  data = merged_data)
 summary(gas3)
+
+#just the 4 biggest company stays
+library(forcats)
+keep <- c("Mol","Shell","Omv","Orlen")   
+merged_data <- merged_data %>%
+  mutate(comp = fct_other(comp, keep = keep, other_level = "other"))
+merged_data$comp <- relevel(merged_data$comp, ref = "other")
+
+gas4 <- lm(avg_gasoline ~ pop + inc + cars + region + highway_dummy 
+           + n_stations + comp,  data = merged_data)
+summary(gas4)
+
+#ez egyelőre nem jó, de ki kéne javítani
+corrplot::corrplot(merged_data, method = "color", type = "full", 
+                   col = c(2,3,6,11,12,26,28,29,31))
