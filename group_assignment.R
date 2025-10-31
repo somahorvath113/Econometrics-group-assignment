@@ -135,9 +135,6 @@ gas4 <- lm(avg_gasoline ~ pop + inc + cars + region + highway_dummy
 summary(gas4)
 
 library(corrplot)
-#ez egyelőre nem jó, de ki kéne javítani
-corrplot::corrplot(merged_data, method = "color", type = "full", 
-                   col = c(2,3,6,11,12,26,28,29,31))
 
 
 selected_cols <- c("avg_gasoline", "avg_diesel", "n_stations", "pop", "dwellings", "areapstation", "inc", "cars", "highway_dummy")
@@ -145,4 +142,147 @@ corrplot_data <- merged_data[selected_cols]
 
 cor_matrix <- cor(corrplot_data, use = "pairwise.complete.obs")
 
-corrplot::corrplot(cor_matrix, method = "color", type = "full")
+corrplot::corrplot(cor_matrix, method = "number", type = "full")
+
+
+
+
+# descriptive statistics
+
+library(skimr)
+library(gt)
+
+vis_data <- merged_data
+
+vis_data <- vis_data[, c(2, 3, 6, 10, 11, 12 )]
+
+new_names5 <- c("Gasoline", "Diesel", "Number of stations", "Area", "Population", "Dwellings")
+vis_data <- vis_data %>% rename_with(~ new_names5)
+
+
+vis1 <- skim(vis_data)
+vis1 <- vis1[, -c(1,3, 4, 12)]
+
+# visulalisation 
+
+gt_table <- vis1 %>%
+  gt() %>%
+  tab_header(
+    title = "Descriptive Statistics"
+  ) %>%
+  fmt_number(
+    columns = vars(numeric.mean, numeric.sd, numeric.p0, numeric.p25, numeric.p50, numeric.p75, numeric.p100),
+    decimals = 2
+  ) %>%
+  cols_label(
+    skim_variable = "Variable",
+    numeric.mean = "Average",
+    numeric.sd = "Standard deviation",
+    numeric.p0 = "Min",
+    numeric.p25 = "25. Percentile",
+    numeric.p50 = "Median",
+    numeric.p75 = "75. Percentile",
+    numeric.p100 = "Max"
+  ) %>%
+  tab_options(
+    table.font.names = "Arial",
+    table.background.color = "white"
+  )
+print(gt_table)
+
+library(ggplot2)
+
+hist_gas <- ggplot(merged_data, aes(x = avg_gasoline)) +
+  geom_histogram(
+    bins = 30,                
+    fill = "steelblue",       
+    color = "white",          
+    alpha = 0.8               
+  ) +
+  labs(
+    title = "Averge Price of Gasoline in Hungary",
+    x = "Average price of gasoline",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+
+hist_gas
+
+
+hist_diesel <- ggplot(merged_data, aes(x = avg_diesel)) +
+  geom_histogram(
+    bins = 30,                
+    fill = "steelblue",       
+    color = "white",          
+    alpha = 0.8               
+  ) +
+  labs(
+    title = "Averge Price of Diesel in Hungary",
+    x = "Average price of diesel",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+
+hist_diesel
+
+hist_pop <- ggplot(merged_data, aes(x = pop)) +
+  geom_histogram(
+    bins = 30,                
+    fill = "steelblue",       
+    color = "white",          
+    alpha = 0.8               
+  ) +
+  labs(
+    title = "Population of settlements in Hungary",
+    x = "Population",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+
+hist_pop
+
+hist_dwe <- ggplot(merged_data, aes(x = dwellings)) +
+  geom_histogram(
+    bins = 30,                
+    fill = "steelblue",       
+    color = "white",          
+    alpha = 0.8               
+  ) +
+  labs(
+    title = "Number of Dwellings in Settlements in Hungary",
+    x = "Number of Dwellings",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+
+hist_dwe
+
+
+gas_station_scat <- ggplot(merged_data, aes(x = dwellings, y = avg_gasoline)) +
+  geom_point(
+    color = "steelblue",  
+    alpha = 0.7,          
+    size = 3              
+  ) +
+  geom_smooth(
+    method = "lm",        
+    color = "darkred",    
+    se = TRUE             
+  ) +
+  labs(
+    title = "Scatterplot with Linear Regression Line",
+    x = "Number of Dwellings",
+    y = "Averge Price of Gasoline"
+  ) +
+  theme_minimal()
+
+gas_station_scat
+
+
+gas5 <- lm(avg_gasoline ~ n_stations + cars  + region + highway_dummy 
+            + comp,  data = merged_data)
+summary(gas5)
+
+diesel5 <- lm(avg_diesel ~   inc  + region + highway_dummy 
+           + comp + n_stations,  data = merged_data)
+summary(diesel5)
