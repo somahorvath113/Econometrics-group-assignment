@@ -4,7 +4,7 @@ library(readxl)
 library(tidyverse)
 library(dplyr)
 library(tidyr)
-setwd("C:/Bator/1felev/Econometrics/empirical assignment")
+setwd("D://Egyetem//Econometrics//Group_assignment")
 data <- read_excel("data.xlsx")
 
 
@@ -134,6 +134,15 @@ gas4 <- lm(avg_gasoline ~ pop + inc + cars + region + highway_dummy
            + n_stations + comp,  data = merged_data)
 summary(gas4)
 
+library(corrplot)
 #ez egyelőre nem jó, de ki kéne javítani
 corrplot::corrplot(merged_data, method = "color", type = "full", 
                    col = c(2,3,6,11,12,26,28,29,31))
+
+
+selected_cols <- c("avg_gasoline", "avg_diesel", "n_stations", "pop", "dwellings", "areapstation", "inc", "cars", "highway_dummy")
+corrplot_data <- merged_data[selected_cols]
+
+cor_matrix <- cor(corrplot_data, use = "pairwise.complete.obs")
+
+corrplot::corrplot(cor_matrix, method = "color", type = "full")
