@@ -278,7 +278,7 @@ gas_station_scat
 #visualization
 
 library(stargazer)
-
+library(webshot)
 aic_values <- c(AIC(gas1), AIC(gas2), AIC(gas5))
 bic_values <- c(BIC(gas1), BIC(gas2), BIC(gas5))
 
